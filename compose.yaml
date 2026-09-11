@@ -1,0 +1,12 @@
+services:
+  rathena:
+    image: rathena:latest
+    restart: unless-stopped
+
+  wsproxy:
+    image: ghcr.io/ubermanu/wsproxy:latest
+    restart: unless-stopped
+    depends_on: [rathena]
+    ports:
+      - "5999:5999"
+    command: ["-a", "rathena:6900,rathena:6121,rathena:5121"]
