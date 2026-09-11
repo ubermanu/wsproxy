@@ -63,6 +63,10 @@ pub async fn serve(listener: TcpListener, allow: Arc<AllowList>) {
     }
 }
 
+#[allow(
+    clippy::result_large_err,
+    reason = "signature imposed by tungstenite::Callback"
+)]
 async fn handle(stream: TcpStream, peer: SocketAddr, allow: Arc<AllowList>) -> Result<()> {
     stream.set_nodelay(true)?;
 
