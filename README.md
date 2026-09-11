@@ -7,9 +7,6 @@ Clients connect to `ws://<proxy>:5999/<host>:<port>`. The target is the URL
 path. Traffic is relayed verbatim in both directions, and outbound connections
 are forced to IPv4.
 
-A Rust rewrite of [herenow/wsProxy](https://github.com/herenow/wsProxy), which
-ships no image.
-
 ## Usage
 
 ```sh
@@ -52,9 +49,6 @@ services:
       - "5999:5999"
     command: ["--allow", "192.168.1.10:6900"]
 ```
-
-`latest` and `nightly` track the last build, `<YYYYMMDD>-<short-sha>` is
-immutable.
 
 ## Build
 
