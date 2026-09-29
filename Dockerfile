@@ -1,22 +1,14 @@
-ARG ZIG_VERSION=0.16.0
+FROM --platform=$BUILDPLATFORM alpine:3.24 AS build
 
-FROM --platform=$BUILDPLATFORM python:3.13-slim AS build
-
-ARG ZIG_VERSION
-ARG TARGETPLATFORM
-
-RUN pip install --no-cache-dir "ziglang==${ZIG_VERSION}"
+RUN apk add --no-cache zig
 
 WORKDIR /src
 COPY build.zig build.zig.zon ./
 COPY src ./src
 
-RUN case "$TARGETPLATFORM" in \
-      linux/amd64) target=x86_64-linux-musl ;; \
-      linux/arm64) target=aarch64-linux-musl ;; \
-      *) echo "unsupported target platform: $TARGETPLATFORM" >&2; exit 1 ;; \
-    esac \
- && python -m ziglang build -Doptimize=ReleaseSafe -Dtarget="$target" --prefix /out
+ARG TARGETARCH
+RUN case "$TARGETARCH" in amd64) arch=x86_64 ;; arm64) arch=aarch64 ;; esac \
+ && zig build -Doptimize=ReleaseSafe -Dtarget="$arch-linux-musl" --prefix /out
 
 FROM scratch
 
