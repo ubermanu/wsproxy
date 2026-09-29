@@ -1,39 +1,26 @@
-ARG RUST_VERSION=1.98
+ARG ZIG_VERSION=0.16.0
 
-FROM --platform=$BUILDPLATFORM rust:${RUST_VERSION}-slim AS build
+FROM --platform=$BUILDPLATFORM python:3.13-slim AS build
 
+ARG ZIG_VERSION
 ARG TARGETPLATFORM
 
-# The crate has no C dependencies, so rust-lld links the musl targets without a
-# cross toolchain. Proc macros still build for the glibc host with its own linker.
-ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld \
-    CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=rust-lld
+RUN pip install --no-cache-dir "ziglang==${ZIG_VERSION}"
 
 WORKDIR /src
+COPY build.zig build.zig.zon ./
+COPY src ./src
 
 RUN case "$TARGETPLATFORM" in \
-      linux/amd64) target=x86_64-unknown-linux-musl ;; \
-      linux/arm64) target=aarch64-unknown-linux-musl ;; \
+      linux/amd64) target=x86_64-linux-musl ;; \
+      linux/arm64) target=aarch64-linux-musl ;; \
       *) echo "unsupported target platform: $TARGETPLATFORM" >&2; exit 1 ;; \
     esac \
- && echo "$target" > /target \
- && rustup target add "$target"
-
-COPY Cargo.toml Cargo.lock ./
-RUN mkdir src \
- && echo 'fn main() {}' > src/main.rs \
- && touch src/lib.rs \
- && cargo build --release --locked --target "$(cat /target)" \
- && rm -rf src
-
-COPY src ./src
-RUN touch src/main.rs src/lib.rs \
- && cargo build --release --locked --target "$(cat /target)" \
- && cp "target/$(cat /target)/release/wsproxy" /wsproxy
+ && python -m ziglang build -Doptimize=ReleaseSafe -Dtarget="$target" --prefix /out
 
 FROM scratch
 
-COPY --from=build /wsproxy /wsproxy
+COPY --from=build /out/bin/wsproxy /wsproxy
 
 USER 65532:65532
 EXPOSE 5999
