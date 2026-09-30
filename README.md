@@ -17,7 +17,6 @@ wsproxy --allow 192.168.1.10:6900,192.168.1.10:6121,192.168.1.10:5121
 | ------------- | ----------- | ------- |
 | `--port PORT` | `PORT`      | `5999`  |
 | `--allow LIST`| —           | none    |
-| —             | `RUST_LOG`  | `info`  |
 
 ## Allowlist
 
@@ -52,6 +51,9 @@ services:
 
 ## Build
 
+Requires Zig 0.16.
+
 ```sh
-cargo build --release
+zig build -Doptimize=ReleaseSafe
+zig build test
 ```

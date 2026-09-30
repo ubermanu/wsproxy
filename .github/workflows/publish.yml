@@ -14,15 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: mlugg/setup-zig@v2
         with:
-          components: clippy, rustfmt
+          version: 0.16.0
 
-      - uses: Swatinem/rust-cache@v2
-
-      - run: cargo fmt --check
-      - run: cargo clippy --all-targets --locked -- -D warnings
-      - run: cargo test --locked
+      - run: zig fmt --check build.zig src
+      - run: zig build test --summary all
 
   publish:
     needs: check
